@@ -1,29 +1,27 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RecyclerModule } from './recycler/recycler.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { UserService } from './user/user.service';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(), // Load environment variables
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432, 
-      username: 'postgres', 
-      password: 'root', // Change this to your PostgreSQL password
-      database: 'test2', // Change to your PostgreSQL database name
-      entities: [__dirname + '/**/*.entity{.ts,.js}'], // Path to your entities
+      url: process.env.DATABASE_URL, // Use Render's database URL
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Set to false in production
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false, // Required for Render DB
     }),
     RecyclerModule,
     UserModule,
-    AuthModule // Your custom module
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, UserService],
+  providers: [AppService],
 })
 export class AppModule {}
